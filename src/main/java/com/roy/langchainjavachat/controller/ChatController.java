@@ -6,6 +6,7 @@ import com.roy.langchainjavachat.service.Assistant;
 import com.roy.langchainjavachat.service.RagService;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
+import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -80,17 +81,21 @@ public class ChatController {
 
         // First, let's load documents that we want to use for RAG
 
-        List<Document> documents = FileSystemDocumentLoader.loadDocuments("documents/test.txt");
-
+//        List<Document> documents = FileSystemDocumentLoader.loadDocuments("documents/test.txt");
+        Document document = FileSystemDocumentLoader.loadDocument("F:/projects/LangChain-JavaChat/src/main/resources/documents/test2.txt", new TextDocumentParser());
+//        Document document = FileSystemDocumentLoader.loadDocument("F:/projects/LangChain-JavaChat-main/src/main/resources/documents/eos600d-im3-zh.pdf", new ApachePdfBoxDocumentParser());
+        List<Document> documents = new ArrayList<>();
+        documents.add(document);
         // Second, let's create an assistant that will have access to our documents
         Assistant assistant = AiServices.builder(Assistant.class)
                 .chatLanguageModel(OpenAiChatModel.withApiKey("demo")) // it should use OpenAI LLM
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // it should remember 10 latest messages
+                .chatMemoryProvider(userId -> MessageWindowChatMemory.withMaxMessages(10))
+//                .chatMemory(MessageWindowChatMemory.withMaxMessages(10)) // it should remember 10 latest messages
                 .contentRetriever(ragService.createContentRetriever(documents)) // it should have access to our documents
                 .build();
 
         String chat = assistant.chat("501", question);
-        return chatLanguageModel.generate(question);
+        return chatLanguageModel.generate(chat);
     }
 
 }
